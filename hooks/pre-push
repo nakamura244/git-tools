@@ -1,0 +1,39 @@
+#!/bin/bash
+
+pwd=$(pwd)
+cowsay_item=$(/usr/bin/ruby $pwd/.git/hooks/cowsay.rb)
+essay=$(/usr/bin/ruby $pwd/.git/hooks/essay.rb)
+
+z40=0000000000000000000000000000000000000000
+
+while read local_ref local_sha1 remote_ref remote_sha1
+do
+  if [[ "${remote_ref##refs/heads/}" = "master" ]]; then
+    exec < /dev/tty
+    while read -p "Are you ok to pushing master branch? [y/n] " answer ; do
+    case $answer in
+      y) {
+        echo "pushing master...."
+        break;
+      };;
+      n) {
+         cowsay -f $cowsay_item "Stop push to master branch!!!"
+         exit 1
+       };;
+      *) echo "Please answer y or n.";;
+     esac
+     done
+  fi
+  if [ "$remote_sha1" = $z40 ]; then
+    cowsay -f $cowsay_item "Grow the Well Pull Request(this branch)"
+  else
+    figlet -f roman -w 4000 Good job!
+    echo "======================================= One Essay ======================================="
+    echo $essay
+    echo "======================================= recommend reviewer =============================="
+    reviewer=$(/usr/bin/ruby $pwd/.git/hooks/reviewer.rb)
+    echo $reviewer
+    echo "========================================================================================="
+    break;
+  fi
+done
